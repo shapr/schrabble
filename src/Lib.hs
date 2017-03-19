@@ -15,13 +15,22 @@ import qualified Data.ByteString.Lazy  as BSL
 import           Data.Char             (toLower)
 import           Data.Data             (Data, Typeable)
 import           Data.Int
+import           Data.List
 import qualified Data.Map.Strict       as Map
+import           Data.Maybe
+import           Data.Monoid
+import Test.QuickCheck
+import Generic.Random.Generic
+import Data.Text.Arbitrary
 import qualified Data.Text             as T
 import qualified Data.Vector           as V
 import           Data.Word             (Word32 (..), Word64 (..), byteSwap32,
                                         byteSwap64)
 import           GHC.Generics          (Generic)
-import           Word128
+-- import           Word128
+
+instance Arbitrary Board where
+  arbitrary = Board <$> arbitrary <*> arbitrary
 
 data Board = Board {
   _board   :: ![[T.Text]]
@@ -39,17 +48,29 @@ instance ToJSON Board where
     where opts = defaultOptions { fieldLabelModifier = map toLower . drop 1}
 
 -- letter values and distributions
+letterValues :: Map.Map Char Int
 letterValues = Map.fromList [('*',0),('A',1),('B',3),('C',3),('D',2),('E',1),('F',4),('G',2),('H',4),('I',1),('J',8),('K',5),('L',1),('M',3),('N',1),('O',1),('P',3),('Q',10),('R',1),('S',1),('T',1),('U',1),('V',4),('W',4),('X',8),('Y',4),('Z',10)]
 
+letterDistribution :: Map.Map Char Int
 letterDistribution = Map.fromList [('*',2),('A',9),('B',2),('C',2),('D',4),('E',12),('F',2),('G',3),('H',2),('I',9),('J',1),('K',1),('L',4),('M',2),('N',6),('O',8),('P',2),('Q',1),('R',6),('S',4),('T',6),('U',4),('V',2),('W',2),('X',1),('Y',2),('Z',1)]
 
 -- vector of words?
-lmain :: IO ()
-lmain = do
-  contents <- BS.readFile "sowpods.txt"
-  let wordslist = V.fromList $ BSC.split '\n' contents :: V.Vector BS.ByteString
-  print "hi"
+-- lmain :: IO ()
+-- lmain = do
+--   contents <- BS.readFile "sowpods.txt"
+--   let wordslist = V.fromList $ BSC.split '\n' contents :: V.Vector BS.ByteString
+--   print "hi"
 
+cleanBoard :: [[T.Text]] -> [[T.Text]]
+cleanBoard b = fmap clean <$> b
+  where clean "" = " "
+        clean x  = x
 
-findWords :: Board -> Int
-findWords = undefined
+getWords :: [[T.Text]] -> [T.Text]
+getWords b = filter (\x -> T.length x > 1) $ concatMap T.words board <> concatMap T.words cols
+  where board = (fmap T.concat b :: [T.Text])
+        cols = T.transpose board
+
+scoreWord :: T.Text -> Int
+scoreWord w = T.foldr valOrZero 0 w
+  where valOrZero ch n = n + (fromMaybe 0 $ Map.lookup ch letterValues)

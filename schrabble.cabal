@@ -17,16 +17,21 @@ library
   hs-source-dirs:      src
   exposed-modules:     Lib
                      , Word128
+                     , Data.Text.Arbitrary
+                     , Test.QuickCheck.Utf8
   build-depends:       base >= 4.7 && < 5
+                     , aeson
+                     , QuickCheck
+                     , binary
+                     , bytestring
+                     , containers
+                     , generic-random
+                     , lens
                      , tasty
                      , tasty-quickcheck
-                     , aeson
-                     , lens
-                     , bytestring
-                     , word8
-                     , containers
-                     , vector
                      , text
+                     , vector
+                     , word8
   default-language:    Haskell2010
 
 executable schrabble-exe
@@ -42,14 +47,16 @@ test-suite schrabble-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   build-depends:       base
-                     , schrabble
-                     , tasty
-                     , tasty-quickcheck
-                     , tasty-hunit
                      , QuickCheck
-                     , hspec
                      , aeson
                      , bytestring
+                     , hspec
+                     , lens
+                     , schrabble
+                     , tasty
+                     , tasty-hunit
+                     , tasty-quickcheck
+                     , text
                      , word8
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
